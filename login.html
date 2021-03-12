@@ -1,0 +1,175 @@
+<html>
+
+<head>
+
+</head>
+
+<body>
+    <input id="user" type="text" placeholder="username" name="login_user">
+    <br>
+    <input id="pass" type="text" placeholder="pass" name="login_passwort">
+    <br>
+    <input id="IncName" type= "text" placeholder="OID" name="inc_name">
+    <br>
+    <input id="IncNummer" type= "text" placeholder="Vorgangsnummer" name="inc_nummer">
+    <br>
+    <p>e03ae33ee8417ce2c9785274217636e0</p>
+    <br>
+    <input type="submit" id="submit_btn" value="login">
+    <br>
+    <input type="submit" id="logout_btn" value="logout">
+    <br>
+    <input type="submit" id="getInc_btn" value="getInc">
+    <br>
+    <input type="submit" id="getIncByNr_btn" value="Nach Nummer suchen">
+    <br>
+    
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/core.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/md5.js"></script>
+
+
+<script>
+    document.getElementById("submit_btn").addEventListener("click", initLogin);
+    document.getElementById("logout_btn").addEventListener("click", initLogout);
+    document.getElementById("getInc_btn").addEventListener("click", getIncName);
+
+    var apa_token;    
+
+    function initLogin() {
+        var username = String(document.getElementById("user").value);
+        var passwort = String(document.getElementById("pass").value);
+        console.log(username);
+        console.log(passwort);
+
+        var passhash = CryptoJS.MD5(passwort).toString();
+        console.log(passhash);
+        sendJSON(username, passhash);
+    }
+
+
+    function sendJSON(username, passwort) {
+
+        // Creating a XHR object 
+        let xhr = new XMLHttpRequest();
+        let url = "http://192.168.201.233:8080/v2/login";
+
+        // open a connection 
+        xhr.open("POST", url, true);
+
+        // Set the request header i.e. which type of content you are sending 
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("appkey", "123");
+        xhr.setRequestHeader("sessionId", "");
+
+        // Create a state change callback 
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+
+                //Print received data from server 
+                //result.innerHTML = this.responseText;
+                console.log(this.responseText);
+                var myObj = JSON.parse(this.responseText);                
+                apa_token = String(myObj.data.token);
+                console.log("Token: " + apa_token);
+
+            }
+        };
+
+
+        // Converting JSON data to string 
+        var data = JSON.stringify({
+            "user": username,
+            "pass": passwort,
+            "appNames": ["GSD-RestApi"]
+        })
+        console.log("1");
+        // Sending data with the request 
+        xhr.send(data);
+    }
+
+    function initLogout() {
+
+        // Creating a XHR object 
+        let xhr = new XMLHttpRequest();
+        let url = "http://192.168.201.233:8080/v1/logout";
+        console.log(apa_token);
+        // open a connection 
+        xhr.open("POST", url, true);
+
+        // Set the request header i.e. which type of content you are sending 
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + apa_token);
+        xhr.setRequestHeader("appkey", "123");     
+
+        // Create a state change callback 
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+
+                //Print received data from server 
+                //result.innerHTML = this.responseText;
+                console.log(this.responseText);
+            }
+        };
+
+
+        // Converting JSON data to string 
+        var data = JSON.stringify({})
+        console.log("2");
+        // Sending data with the request 
+        xhr.send(data);        
+    }
+    
+    function getIncName(){
+        
+        var oid = String(document.getElementById("IncName").value);
+        // Creating a XHR object 
+        let xhr = new XMLHttpRequest();
+        let url = "http://192.168.201.233:8080/v1/object/" + oid;
+        
+        console.log("Url: " + url);
+        
+        // open a connection 
+        xhr.open("GET", url, true);
+
+        // Set the request header i.e. which type of content you are sending 
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + apa_token);
+        xhr.setRequestHeader("appkey", "123");          
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+
+                //Print received data from server 
+                //result.innerHTML = this.responseText;               
+                
+                var myData = JSON.parse(this.responseText);                
+                var Name = String(myData.data.Name);
+                console.log("Name: " + Name);
+                
+            }
+        };        
+        var data = JSON.stringify({});
+        xhr.send(data);                
+    }
+    
+    function getIncNameByNr(){
+        var nummer = String(document.getElementById("IncNummer").value);
+        
+        // Creating a XHR object 
+        let xhr = new XMLHttpRequest();
+        let url = "http://192.168.201.233:8080/v1/execute/{macro=APA_NORGetIncNameByNummer}";
+        
+        // open a connection 
+        xhr.open("GET", url, true);
+
+        // Set the request header i.e. which type of content you are sending 
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Authorization", "Bearer " + apa_token);
+        xhr.setRequestHeader("appkey", "123");          
+        
+    }
+
+</script>
+
+</html>
