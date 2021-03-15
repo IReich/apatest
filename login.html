@@ -34,6 +34,7 @@
     document.getElementById("submit_btn").addEventListener("click", initLogin);
     document.getElementById("logout_btn").addEventListener("click", initLogout);
     document.getElementById("getInc_btn").addEventListener("click", getIncName);
+    document.getElementById("getIncByNr_btn").addEventListener("click", getIncNameByNr);
 
     var apa_token;    
 
@@ -83,8 +84,7 @@
             "user": username,
             "pass": passwort,
             "appNames": ["GSD-RestApi"]
-        })
-        console.log("1");
+        })        
         // Sending data with the request 
         xhr.send(data);
     }
@@ -116,7 +116,7 @@
 
         // Converting JSON data to string 
         var data = JSON.stringify({})
-        console.log("2");
+        
         // Sending data with the request 
         xhr.send(data);        
     }
@@ -159,15 +159,38 @@
         
         // Creating a XHR object 
         let xhr = new XMLHttpRequest();
-        let url = "http://192.168.201.233:8080/v1/execute/{macro=APA_NORGetIncNameByNummer}";
+        let url = "http://192.168.201.233:8080/v1/execute/APA_NORInterfaceGetIncidentNameByNumber";
+        //let url = "http://192.168.201.233:8080/v1/Object/Vorgang?query={\"macro\":\"APA_NORGetIncNameByNummer\",\"macroLevel\":2)&serialization";
         
+
         // open a connection 
-        xhr.open("GET", url, true);
+        xhr.open("POST", url, true);
 
         // Set the request header i.e. which type of content you are sending 
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.setRequestHeader("Authorization", "Bearer " + apa_token);
-        xhr.setRequestHeader("appkey", "123");          
+        xhr.setRequestHeader("appkey", "123"); 
+        
+        console.log( "Sec-Token: " + apa_token );
+        console.log( "Nummer: " + nummer );
+        
+        xhr.onreadystatechange = function(){
+            if( xhr.readyState === 4 && xhr.status === 200 ){                
+                console.log( this.responseText);
+
+                var myData, myResp;
+                myResp = JSON.parse(this.responseText);                
+                mydata = myResp["data"];
+                console.log(String(myData));
+                initLogout();
+                
+            } 
+        };         
+        
+        var data = JSON.stringify(({"nummer":String(nummer)}));
+        console.log(JSON.parse(data));
+        xhr.send(data);    
+        
         
     }
 
